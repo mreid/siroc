@@ -20,7 +20,10 @@ void setup(){
 
   area.setView(10,10,300,300);
   area.add(roc);
+
+  testConverter();  
 }
+
 
 void draw(){
 //  scale(200.0);
