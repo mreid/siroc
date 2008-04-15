@@ -1,38 +1,51 @@
-class OpCurve {
-  int size = 2;
-  float[] fpr = new float[size];
-  float[] tpr = new float[size];
+import java.util.ArrayList;
 
+class OpCurve {
+  ArrayList points = new ArrayList();
+  RContour curve = new RContour();
+  
   OpCurve() {
-   fpr[0] = 0.0; tpr[0] = 0.0;
-   fpr[1] = 1.0; tpr[1] = 1.0; 
+    curve.addPoint(0.0, 0.0);
+    curve.addPoint(1.0, 1.0);
   }
   
   // Add a new ROC point to this curve
   void add(float newfpr, float newtpr) {
-    // Ensure the arrays are large enough for a new point
-    if(size == fpr.length) { fpr = expand(tpr); tpr = expand(tpr); }
-    
-    // Shift the last point up one in the array
-    fpr[size] = fpr[size-1];
-    tpr[size] = tpr[size-1];
-    
-    // Add the new coordinates
-    fpr[size-1] = newfpr;
-    tpr[size-1] = newtpr;
-    
-    size++;
+    curve.addPoint(newfpr, newtpr);
+  }
+
+  void draw(PGraphics g) {
+    curve.draw(g);
+  }  
+}
+
+/**
+ * Represents a line aX + bY + c = 0
+ */
+class Line {
+  float a, b, c; 
+  
+  Line(float a, float b, float c) {
+   this.a = a;
+   this.b = b;
+   this.c = c; 
   }
   
-  RShape toShape() {
-    s = new RShape();
-  
-    s.addMoveTo(fpr[0], tpr[0]);
-    for(int i = 1 ; i < size ; i++) {
-      s.addLineTo(fpr[i], tpr[i]);
-    }
-    
-    return s; 
+  float slope() { 
+   if(b == 0) return Float.POSITIVE_INFINITY;
+   
+   return -b/a;
   }
 }
 
+/**
+ * Represents a point (X,Y)
+ */
+class Point {
+  float x, y;
+  
+  Point(float x, float y) {
+   this.x = x;
+   this.y = y; 
+  }
+}
