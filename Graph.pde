@@ -1,5 +1,3 @@
-import geomerative.*;
-
 class Graph {
   Segment[] segments = new Segment[16];
   int lastIndex = 0;

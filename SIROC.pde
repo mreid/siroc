@@ -1,7 +1,7 @@
 import geomerative.*;
 
-RPolygon p;
 RShape s;
+GraphArea area = new GraphArea();
 
 void setup(){
   size(400,400);
@@ -10,31 +10,29 @@ void setup(){
   fill(0);
   //noFill();
   stroke(255,0,0);
-  
-  s = new RShape();
-  
-  s.addMoveTo(-30,250);
-  s.addLineTo(30,150);
-  s.addLineTo(50,75);
-  s.addBezierTo(130,90,75,100,90,150);
-  s.addLineTo(130,250);
-  s.addBezierTo(80,200,70,200,-30,250);
-  
-  s.addMoveTo(60,120);
-  s.addBezierTo(75,110,85,130,75,140);
-  s.addBezierTo(70,150,65,140,60,120);
-  
-  p = s.toPolygon();
+
+  OpCurve roc = new OpCurve();
+  roc.add(0.6, 0.8);
+  s = roc.toShape();  
+
+  area.setView(10,10,300,300);
 }
 
 void draw(){
-//  scale(0.25);
-  translate(200,50);
+//  scale(200.0);
+//  strokeWeight(1/200.0);
+//  translate(200,50);
   background(255);
   
-//  p.draw(g);
   smooth();
+
+  area.display(s, g);
   
+  if(area.active()) {
+    area.showCursor();
+  }
+
+/*  
   for(int si=0 ; si < s.countSubshapes() ; si++) {
     RSubshape ss = s.subshapes[si];
     for(int i=0 ; i < 100; i++) {
@@ -49,4 +47,5 @@ void draw(){
      line(v.x, v.y, v.x + tgnt.y, v.y - tgnt.x);
     }
   }
+*/
 }
