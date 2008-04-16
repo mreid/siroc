@@ -1,6 +1,15 @@
 /**
+ * <p>
  * Visualisation of the relationship between Statistical Information
  * and ROC curves.
+ * </p><p>
+ * The left graph shows two curves on a Statistical Information Graph.
+ * The right graph shows the same curves converted to an ROC representation
+ * with ¹ = 0.5.
+ * </p><p>
+ * Move your mouse over the S.I. graph to see the corresponding line in the
+ * ROC graph.
+ * </p>
  */
 import geomerative.*;
 import name.reid.mark.geovex.*;
