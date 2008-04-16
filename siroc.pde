@@ -21,6 +21,7 @@ Converter sirocConvert = new SIROCConverter();
 Converter rocsiConvert = new ROCSIConverter();
 
 SpecPoint siCursor = new SpecPoint(0.0, 0.0);
+SpecPoint rocCursor = new SpecPoint(0.0, 0.0);
 
 void setup(){
   size(700,400,P3D);
@@ -53,6 +54,9 @@ void setup(){
 
   siView.add(siCursor);
   rocView.add(new DualLine(siCursor, sirocConvert));
+  
+  rocView.add(rocCursor);
+  siView.add(new DualLine(rocCursor, rocsiConvert));
 }
 
 
@@ -65,5 +69,10 @@ void draw(){
   if(siView.active()) {
     siCursor.setX(siView.viewToModelX(mouseX));
     siCursor.setY(siView.viewToModelY(mouseY));
+  }
+  
+  if(rocView.active()) {
+    rocCursor.setX(rocView.viewToModelX(mouseX));
+    rocCursor.setY(rocView.viewToModelY(mouseY)); 
   }
 }

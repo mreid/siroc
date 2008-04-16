@@ -1,51 +1,78 @@
+/**
+ * <p>
+ * Visualisation of the relationship between Statistical Information
+ * and ROC curves.
+ * </p><p>
+ * The left graph shows two curves on a Statistical Information Graph.
+ * The right graph shows the same curves converted to an ROC representation
+ * with ¹ = 0.5.
+ * </p><p>
+ * Move your mouse over the S.I. graph to see the corresponding line in the
+ * ROC graph.
+ * </p>
+ */
 import geomerative.*;
+import name.reid.mark.geovex.*;
 
-RShape s;
-GraphArea area = new GraphArea();
+PlotView rocView = new PlotView(0.0, 0.0, 1.0, 1.0);
+PlotView siView  = new PlotView(0.0, 0.0, 1.0, 0.25);
+
+Converter sirocConvert = new SIROCConverter();
+Converter rocsiConvert = new ROCSIConverter();
+
+SpecPoint siCursor = new SpecPoint(0.0, 0.0);
+SpecPoint rocCursor = new SpecPoint(0.0, 0.0);
 
 void setup(){
-  size(400,400);
-  frameRate(34);
+  size(700,400,P3D);
+  frameRate(20);
   background(255);
   fill(0);
   //noFill();
   stroke(255,0,0);
 
-  OpCurve roc = new OpCurve();
-  roc.add(0.6, 0.8);
-  s = roc.toShape();  
+  siView.setView(10, 10, 300, 300);
+  rocView.setView(310, 10, 610, 300);
 
-  area.setView(10,10,300,300);
+  SpecCurve siTent = new SpecCurve();
+  siTent.add(0.0, 0.0);
+  siTent.add(0.5, 0.25);
+  siTent.add(1.0, 0.0);
+
+  SpecCurve si = new SpecCurve();
+  si.add(0.0, 0.0);
+  si.add(0.25, 0.125);
+  si.add(0.5, 0.15);
+  si.add(0.75, 0.125);
+  si.add(1.0, 0.0);
+
+  siView.add(siTent);
+  siView.add(si);
+
+  rocView.add(sirocConvert.toCurve(siTent));
+  rocView.add(sirocConvert.toCurve(si));
+
+  siView.add(siCursor);
+  rocView.add(new DualLine(siCursor, sirocConvert));
+  
+  rocView.add(rocCursor);
+  siView.add(new DualLine(rocCursor, rocsiConvert));
 }
 
+
 void draw(){
-//  scale(200.0);
-//  strokeWeight(1/200.0);
-//  translate(200,50);
   background(255);
   
-  smooth();
+  siView.draw(g);
+  rocView.draw(g);
 
-  area.display(s, g);
+  if(siView.active()) {
+    siCursor.setX(siView.viewToModelX(mouseX));
+    siCursor.setY(siView.viewToModelY(mouseY));
+  }
   
-  if(area.active()) {
-    area.showCursor();
+  if(rocView.active()) {
+    rocCursor.setX(rocView.viewToModelX(mouseX));
+    rocCursor.setY(rocView.viewToModelY(mouseY)); 
   }
-
-/*  
-  for(int si=0 ; si < s.countSubshapes() ; si++) {
-    RSubshape ss = s.subshapes[si];
-    for(int i=0 ; i < 100; i++) {
-     float t = i/100.0;
-     RPoint v = ss.getCurvePoint(t);
-     RPoint tgnt = ss.getCurveTangent(t);
-     tgnt.normalize();
-     tgnt.scale(20);
-     stroke(0);
-     point(v.x, v.y);
-     stroke(255,0,0);
-     line(v.x, v.y, v.x + tgnt.y, v.y - tgnt.x);
-    }
-  }
-*/
 }
