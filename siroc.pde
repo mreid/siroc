@@ -3,25 +3,42 @@
  * and ROC curves.
  */
 import geomerative.*;
+import name.reid.mark.geovex.*;
 
-RShape s;
-PlotView area = new PlotView();
+PlotView rocView = new PlotView(0.0, 0.0, 1.0, 1.0);
+PlotView siView  = new PlotView(0.0, 0.0, 1.0, 0.25);
+
+Converter convert = new Converter();
 
 void setup(){
-  size(400,400);
+  size(700,400,P3D);
   frameRate(20);
   background(255);
   fill(0);
   //noFill();
   stroke(255,0,0);
 
-  OpCurve roc = new OpCurve();
-  roc.add(0.6, 0.8);
+  siView.setView(10, 10, 300, 300);
+  rocView.setView(310, 10, 610, 300);
 
-  area.setView(10,10,300,300);
-  area.add(roc);
+  GVCurve siTent = new GVCurve();
+  siTent.add(0.0, 0.0);
+  siTent.add(0.5, 0.25);
+  siTent.add(1.0, 0.0);
 
-  testConverter();  
+  GVCurve si = new GVCurve();
+  si.add(0.0, 0.0);
+  si.add(0.25, 0.125);
+  si.add(0.5, 0.15);
+  si.add(0.75, 0.125);
+  si.add(1.0, 0.0);
+
+  siView.add(siTent);
+  siView.add(si);
+
+  rocView.add(convert.toROCCurve(siTent));
+  rocView.add(convert.toROCCurve(si));
+
 }
 
 
@@ -31,14 +48,11 @@ void draw(){
 //  translate(200,50);
   background(255);
   
-  smooth();
+//  smooth();
 
-  area.draw(g);
+  siView.draw(g);
+  rocView.draw(g);
   
-  if(area.active()) {
-    area.showCursor();
-  }
-
 /*  
   for(int si=0 ; si < s.countSubshapes() ; si++) {
     RSubshape ss = s.subshapes[si];
