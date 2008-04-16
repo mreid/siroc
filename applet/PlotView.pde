@@ -1,13 +1,17 @@
+import java.util.Vector;
+
 class PlotView {
 
-  GVCurve[] curves = new GVCurve[10];
-  Converter convert = new Converter();
-  int curveCount = 0;
+  Vector curves = new Vector();
+  Vector points = new Vector();
+  Vector lines  = new Vector();
   
   int vxStart, vyStart;
   int vxEnd, vyEnd;
   float xStart, xEnd;
   float yStart, yEnd;
+  
+  GBounds bounds;
   
   PlotView(
     int vx0, int vy0, int vx1, int vy1,
@@ -15,6 +19,7 @@ class PlotView {
   ) {
     vxStart = vx0; vyStart = vy0; vxEnd = vx1; vyEnd = vy1;
     xStart = x0; yStart = y0; xEnd = x1; yEnd = y1;
+    bounds = new GBounds(xStart, yStart, xEnd, yEnd);
   }
 
   PlotView(float x0, float y0, float x1, float y1) {
@@ -25,8 +30,16 @@ class PlotView {
     this(0.0, 0.0, 1.0, 1.0);
   }
   
-  void add(GVCurve curve) {
-    curves[curveCount++] = curve; 
+  void add(GCurve curve) {
+    curves.add(curve); 
+  }
+
+  void add(GPoint point) {
+    points.add(point);  
+  }
+  
+  void add(GLine line) {
+     lines.add(line); 
   }
   
   void setViewStart(int vx, int vy) { vxStart = vx; vyStart = vy; }
@@ -42,8 +55,8 @@ class PlotView {
   float xRange() { return xEnd - xStart; }
   float yRange() { return yEnd - yStart; }
   
-  float viewToModelX(float vx) { return xRange() * (vx - vxStart) / viewWidth(); }
-  float viewToModelY(float vy) { return yRange() * (vy - vyStart) / viewHeight(); }
+  float viewToModelX(float vx) { return xStart + xRange() * (vx - vxStart) / viewWidth(); }
+  float viewToModelY(float vy) { return yStart - yRange() * (vy - vyEnd) / viewHeight(); }
   
    boolean active() {
      return (mouseX > vxStart && mouseX < vxEnd && mouseY > vyStart && mouseY < vyEnd);
@@ -68,30 +81,53 @@ class PlotView {
      scale(viewWidth()/xRange(),-viewHeight()/yRange());
      translate(0,-yEnd);
 
-//    strokeWeight(0.5*min(xRange()/viewWidth(), yRange()/viewHeight()));
-
      // Outline
      noFill();
      stroke(200);
      rect(xStart,yStart,xRange(),yRange());
 
-
-     for(int i = 0 ; i < curveCount ; i++) {
+     // Curves
+     for(int i = 0 ; i < curves.size() ; i++) {
        stroke(0);
-       view(curves[i]).draw(g);
+       viewCurve((GCurve) curves.get(i)).draw(g);
      }
+     
+     // Points
+     for(int i = 0 ; i < points.size() ; i++) {
+       stroke(200,0,0);
+       viewPoint((GPoint) points.get(i));
+     }
+     
+     // Lines
+     for(int i = 0 ; i < lines.size() ; i++) {
+       stroke(200,0,0);
+       viewLine((GLine) lines.get(i)).draw(g);
+     }
+     
      popMatrix();
    }
    
-   RContour view(GVCurve curve) {
+   RContour viewCurve(GCurve curve) {
      RContour c = new RContour();
-//     c.addPoint(0.0, 0.0);
      for(int i = 0 ; i < curve.size() ; i++) {
-       GVPoint p = curve.getPoint(i);
-       c.addPoint(p.x, p.y); 
+       GPoint p = curve.getPoint(i);
+       c.addPoint(p.getX(), p.getY()); 
      }
-//     c.addPoint(1.0, 0.0);
      
      return c;
+   }
+   
+   void viewPoint(GPoint point) {
+     point(point.getX(), point.getY());
+   }
+   
+   RContour viewLine(GLine line) {
+     GSegment s = bounds.clip(line);
+     RContour l = new RContour();
+     l.addPoint(s.start.getX(), s.start.getY());
+     l.addPoint(s.end.getX(), s.end.getY());
+//     l.addPoint(0.0, line.atX(0.0));
+//     l.addPoint(1.0, line.atX(1.0));
+     return l;
    }
 }
