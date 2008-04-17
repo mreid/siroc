@@ -37,11 +37,11 @@
 			<!--[if !IE]> -->
 				<object classid="java:siroc.class" 
             			type="application/x-java-applet"
-            			archive="siroc.jar,batikfont.jar,geomerative.jar,geovex.jar,core.jar"
+            			archive="siroc.jar,controlP5.jar,batikfont.jar,geomerative.jar,geovex.jar,core.jar"
             			width="700" height="400"
             			standby="Loading Processing software..." >
             			
-					<param name="archive" value="siroc.jar,batikfont.jar,geomerative.jar,geovex.jar,core.jar" />
+					<param name="archive" value="siroc.jar,controlP5.jar,batikfont.jar,geomerative.jar,geovex.jar,core.jar" />
 				
 					<param name="mayscript" value="true" />
 					<param name="scriptable" value="true" />
@@ -59,7 +59,7 @@
 						standby="Loading Processing software..."  >
 						
 					<param name="code" value="siroc" />
-					<param name="archive" value="siroc.jar,batikfont.jar,geomerative.jar,geovex.jar,core.jar" />
+					<param name="archive" value="siroc.jar,controlP5.jar,batikfont.jar,geomerative.jar,geovex.jar,core.jar" />
 					
 					<param name="mayscript" value="true" />
 					<param name="scriptable" value="true" />
@@ -93,12 +93,19 @@
 Visualisation of the relationship between Statistical Information
 and ROC curves.
 </p><p>
-The left graph shows two curves on a Statistical Information Graph.
+The left graph shows curves on a Statistical Information plot.
 The right graph shows the same curves converted to an ROC representation
 with π = 0.5.
 </p><p>
-Move your mouse over the S.I. graph to see the corresponding line in the
-ROC graph.
+Move your mouse over the S.I. window to see the corresponding line in the
+ROC graph and <i>vice versa</i>.
+</p>
+<p>
+The duality relationships are computed using the 
+<a href="http://gihub.com/mreid/geovex">geovex</a> Java library while the visualisation
+is done with the standard Processing library and the 
+<a href="http://www.ricardmarxer.com/processing/geomerative/documentation/">geomerative</a> 
+library.
 </p>
 
 			</p>
