@@ -1,38 +1,53 @@
+import controlP5.*;
+import geomerative.*;
+import name.reid.mark.geovex.*;
+
 /**
  * <p>
  * Visualisation of the relationship between Statistical Information
  * and ROC curves.
  * </p><p>
- * The left graph shows two curves on a Statistical Information Graph.
+ * The left graph shows curves on a Statistical Information plot.
  * The right graph shows the same curves converted to an ROC representation
  * with ¹ = 0.5.
  * </p><p>
- * Move your mouse over the S.I. graph to see the corresponding line in the
- * ROC graph.
+ * Move your mouse over the S.I. window to see the corresponding line in the
+ * ROC graph and <i>vice versa</i>.
+ * </p>
+ * <p>
+ * The duality relationships are computed using the 
+ * <a href="http://github.com/mreid/geovex">geovex</a> Java library while the visualisation
+ * is done with the standard Processing library and the 
+ * <a href="http://www.ricardmarxer.com/processing/geomerative/documentation/">geomerative</a> 
+ * library.
  * </p>
  */
-import geomerative.*;
-import name.reid.mark.geovex.*;
-
 PlotView rocView = new PlotView(0.0, 0.0, 1.0, 1.0);
-PlotView siView  = new PlotView(0.0, 0.0, 1.0, 0.25);
+PlotView siView  = new PlotView(0.0, 0.0, 1.0, 0.5);
 
-Converter sirocConvert = new SIROCConverter();
-Converter rocsiConvert = new ROCSIConverter();
+SIROCConverter sirocConvert = new SIROCConverter();
+ROCSIConverter rocsiConvert = new ROCSIConverter();
 
 SpecPoint siCursor = new SpecPoint(0.0, 0.0);
 SpecPoint rocCursor = new SpecPoint(0.0, 0.0);
+GLine rocDualCursor = new DualLine(siCursor, sirocConvert);
+GLine siDualCursor = new DualLine(rocCursor, rocsiConvert); 
+
+PFont titleFont = createFont("Arial", 16);
+PFont tickFont  = createFont("Arial", 12);
+
+float prior = 0.5;
 
 void setup(){
-  size(700,400,P3D);
+  size(700,400,JAVA2D);
   frameRate(20);
   background(255);
-  fill(0);
-  //noFill();
-  stroke(255,0,0);
 
-  siView.setView(10, 10, 300, 300);
-  rocView.setView(310, 10, 610, 300);
+  siView.setView(30, 30, 300, 300);
+  siView.setTitle("Stat. Info. (¹ = 0.5)");
+  
+  rocView.setView(360, 30, 300, 300);
+  rocView.setTitle("ROC");
 
   SpecCurve siTent = new SpecCurve();
   siTent.add(0.0, 0.0);
@@ -46,21 +61,32 @@ void setup(){
   si.add(0.75, 0.125);
   si.add(1.0, 0.0);
 
-  siView.add(siTent);
-  siView.add(si);
+  color grey = color(160,160,160);
+  color black = color(0,0,0);
 
-  rocView.add(sirocConvert.toCurve(siTent));
-  rocView.add(sirocConvert.toCurve(si));
+  siView.add(siTent, grey);
+  siView.add(si, black);
 
-  siView.add(siCursor);
-  rocView.add(new DualLine(siCursor, sirocConvert));
-  
-  rocView.add(rocCursor);
-  siView.add(new DualLine(rocCursor, rocsiConvert));
+  rocView.add(sirocConvert.toCurve(siTent), grey);
+  rocView.add(sirocConvert.toCurve(si), black);  
+
+  // Controls for prior value
+//  ControlP5 priorControl = new ControlP5(this);
+//  Slider s = priorControl.addSlider("priorSlider", 0.0, 1.0, 0.5, 250, 350, 200, 20);
+
+  smooth();
 }
 
+/*
+void priorSlider(float value) {
+  prior = value;
+  sirocConvert.setPrior(prior);
+  rocsiConvert.setPrior(prior);
+}
+*/
 
 void draw(){
+  // Clear the screen
   background(255);
   
   siView.draw(g);
@@ -69,10 +95,18 @@ void draw(){
   if(siView.active()) {
     siCursor.setX(siView.viewToModelX(mouseX));
     siCursor.setY(siView.viewToModelY(mouseY));
+    
+    stroke(200,0,0);
+    siView.drawPoint(siCursor);
+    rocView.drawLine(rocDualCursor);
   }
   
   if(rocView.active()) {
     rocCursor.setX(rocView.viewToModelX(mouseX));
     rocCursor.setY(rocView.viewToModelY(mouseY)); 
+
+    stroke(0,0,200);    
+    rocView.drawPoint(rocCursor);
+    siView.drawLine(siDualCursor);
   }
 }

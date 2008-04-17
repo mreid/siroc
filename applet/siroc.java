@@ -16,7 +16,7 @@ import processing.core.*; import controlP5.*; import geomerative.*; import name.
  * </p>
  * <p>
  * The duality relationships are computed using the 
- * <a href="http://gihub.com/mreid/geovex">geovex</a> Java library while the visualisation
+ * <a href="http://github.com/mreid/geovex">geovex</a> Java library while the visualisation
  * is done with the standard Processing library and the 
  * <a href="http://www.ricardmarxer.com/processing/geomerative/documentation/">geomerative</a> 
  * library.
