@@ -8,13 +8,15 @@ import processing.core.*; import controlP5.*; import geomerative.*; import name.
  * and ROC curves.
  * </p><p>
  * The left graph shows curves on a Statistical Information plot.
+ * </p><p>
  * The right graph shows the same curves converted to an ROC representation
- * with \u03c0 = 0.5.
+ * with prior probability for the positive class controlled by \u03c0.
  * </p><p>
  * Move your mouse over the S.I. window to see the corresponding line in the
- * ROC graph and <i>vice versa</i>.
- * </p>
- * <p>
+ * ROC graph and <i>vice versa</i>. 
+ * </p><p>
+ * The prior \u03c0 can be modified using the slider underneath the graphs. 
+ * </p><p>
  * The duality relationships are computed using the 
  * <a href="http://github.com/mreid/geovex">geovex</a> Java library while the visualisation
  * is done with the standard Processing library and the 
@@ -36,7 +38,14 @@ GLine siDualCursor = new DualLine(rocCursor, rocsiConvert);
 PFont titleFont = createFont("Arial", 16);
 PFont tickFont  = createFont("Arial", 12);
 
+int grey = color(160,160,160);
+int black = color(0,0,0);
+
+
 float prior = 0.5f;
+
+SpecCurve roc;
+GCurve si;
 
 public void setup(){
   size(700,400,JAVA2D);
@@ -45,45 +54,46 @@ public void setup(){
 
   siView.setView(30, 30, 300, 300);
   siView.setTitle("Stat. Info. (\u03c0 = 0.5)");
+  siView.setCurveStart(1,0);
+  siView.setCurveEnd(0,0);
   
   rocView.setView(360, 30, 300, 300);
   rocView.setTitle("ROC");
 
-  SpecCurve siTent = new SpecCurve();
-  siTent.add(0.0f, 0.0f);
-  siTent.add(0.5f, 0.25f);
-  siTent.add(1.0f, 0.0f);
+  SpecCurve rocDiag = new SpecCurve();
+  rocDiag.add(0, 0);
+  rocDiag.add(1, 1);
 
-  SpecCurve si = new SpecCurve();
-  si.add(0.0f, 0.0f);
-  si.add(0.25f, 0.125f);
-  si.add(0.5f, 0.15f);
-  si.add(0.75f, 0.125f);
-  si.add(1.0f, 0.0f);
+  rocView.add(rocDiag, grey);
 
-  int grey = color(160,160,160);
-  int black = color(0,0,0);
-
+  GCurve siTent = new DualCurve(rocDiag, rocsiConvert);
   siView.add(siTent, grey);
-  siView.add(si, black);
 
-  rocView.add(sirocConvert.toCurve(siTent), grey);
-  rocView.add(sirocConvert.toCurve(si), black);  
+  roc = new SpecCurve();
+  roc.add(0.0f, 0.0f);
+  roc.add(0.1f, 0.5f);
+  roc.add(0.3f, 0.8f);
+  roc.add(0.7f, 0.95f);
+  roc.add(1.0f, 1.0f);
+
+  si = new DualCurve(roc, rocsiConvert);
+
+  siView.add(si, black);
+  rocView.add(roc, black);  
 
   // Controls for prior value
-//  ControlP5 priorControl = new ControlP5(this);
-//  Slider s = priorControl.addSlider("priorSlider", 0.0, 1.0, 0.5, 250, 350, 200, 20);
+  ControlP5 priorControl = new ControlP5(this);
+  Slider s = priorControl.addSlider("priorSlider", 0.0f, 1.0f, 0.5f, 250, 350, 200, 20);
 
   smooth();
 }
 
-/*
-void priorSlider(float value) {
+public void priorSlider(float value) {
   prior = value;
+  siView.setTitle("Stat. Info. (\u03c0 = " + nf(prior, 1, 2) +")" );
   sirocConvert.setPrior(prior);
   rocsiConvert.setPrior(prior);
 }
-*/
 
 public void draw(){
   // Clear the screen
@@ -142,6 +152,7 @@ class PlotView {
   int vxEnd, vyEnd;
   float xStart, xEnd;
   float yStart, yEnd;
+  float curvex0, curvex1, curvey0, curvey1;
   
   GBounds bounds;
   
@@ -151,6 +162,7 @@ class PlotView {
   ) {
     vxStart = vx0; vyStart = vy0; vxEnd = vx0 + vWidth; vyEnd = vy0 + vHeight;
     xStart = x0; yStart = y0; xEnd = x1; yEnd = y1;
+    curvex0 = xStart; curvey0 = yStart; curvex1 = xEnd; curvey1 = yEnd;
     bounds = new GBounds(xStart, yStart, xEnd, yEnd);
   }
 
@@ -161,6 +173,8 @@ class PlotView {
   public void add(GPoint point, int col) { points.add(new PointView(point, col)); }
   public void add(GLine line, int col) { lines.add(new LineView(line, col)); }
   
+  public void setCurveStart(float x, float y) { this.curvex0 = x; this.curvey0 = y; }
+  public void setCurveEnd(float x, float y) { this.curvex1 = x; this.curvey1 = y; }
   public void setTitle(String title) { this.title = title; }
   public void setViewStart(int vx, int vy) { vxStart = vx; vyStart = vy; }
   public void setViewEnd(int vx, int vy) { vxEnd = vx; vyEnd = vy; }
@@ -186,9 +200,6 @@ class PlotView {
    }
     
    public void preDraw() {
-     drawTitle();
-     drawBounds();
-     
      pushMatrix();
      
      // Set up viewing transformations
@@ -212,6 +223,10 @@ class PlotView {
    }
   
    public void drawBounds() {
+     noFill();
+     stroke(200);
+     rect(vxStart,vyStart,viewWidth(),viewHeight());
+
      fill(0);
      textFont(tickFont);
 
@@ -229,18 +244,15 @@ class PlotView {
    }
   
    public void draw(PGraphics g) {
-     preDraw();
+     drawTitle();
+     drawBounds();
      
-     // Outline
-     noFill();
-     stroke(200);
-     rect(xStart,yStart,xRange(),yRange());
-
+     preDraw();
      // Curves
      for(int i = 0 ; i < curves.size() ; i++) {
        CurveView v = (CurveView) curves.get(i);
        stroke(v.col);
-       viewCurve(v.curve).draw(g);
+       viewCurve(v.curve);
      }
      
      // Points
@@ -254,9 +266,8 @@ class PlotView {
      for(int i = 0 ; i < lines.size() ; i++) {
        LineView v = (LineView) lines.get(i);
        stroke(v.col);
-       viewLine(v.line).draw(g);
-     }
-     
+       viewLine(v.line);
+     }     
      postDraw();
    }
    
@@ -268,18 +279,19 @@ class PlotView {
    
    public void drawLine(GLine l) {
      preDraw();
-     viewLine(l).draw(g);
+     viewLine(l);
      postDraw(); 
    }
    
-   public RContour viewCurve(GCurve curve) {
+   public void viewCurve(GCurve curve) {
      RContour c = new RContour();
+     c.addPoint(curvex0, curvey0);
      for(int i = 0 ; i < curve.size() ; i++) {
        GPoint p = curve.getPoint(i);
        c.addPoint(p.getX(), p.getY()); 
      }
-     
-     return c;
+     c.addPoint(curvex1, curvey1);     
+     c.draw(g);
    }
    
    public void viewPoint(GPoint point) {
@@ -293,12 +305,12 @@ class PlotView {
      line(x + yRes, y - yRes, x - xRes, y + yRes);
    }
    
-   public RContour viewLine(GLine line) {
+   public void viewLine(GLine line) {
      GSegment s = bounds.clip(line);
      RContour l = new RContour();
-     l.addPoint(s.start.getX(), s.start.getY());
-     l.addPoint(s.end.getX(), s.end.getY());
-     return l;
+     l.addPoint(s.getStart().getX(), s.getStart().getY());
+     l.addPoint(s.getEnd().getX(), s.getEnd().getY());
+     l.draw(g);
    }
 }
 

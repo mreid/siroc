@@ -8,13 +8,15 @@ import name.reid.mark.geovex.*;
  * and ROC curves.
  * </p><p>
  * The left graph shows curves on a Statistical Information plot.
+ * </p><p>
  * The right graph shows the same curves converted to an ROC representation
- * with ¹ = 0.5.
+ * with prior probability for the positive class controlled by ¹.
  * </p><p>
  * Move your mouse over the S.I. window to see the corresponding line in the
- * ROC graph and <i>vice versa</i>.
- * </p>
- * <p>
+ * ROC graph and <i>vice versa</i>. 
+ * </p><p>
+ * The prior ¹ can be modified using the slider underneath the graphs. 
+ * </p><p>
  * The duality relationships are computed using the 
  * <a href="http://github.com/mreid/geovex">geovex</a> Java library while the visualisation
  * is done with the standard Processing library and the 
@@ -36,7 +38,14 @@ GLine siDualCursor = new DualLine(rocCursor, rocsiConvert);
 PFont titleFont = createFont("Arial", 16);
 PFont tickFont  = createFont("Arial", 12);
 
+color grey = color(160,160,160);
+color black = color(0,0,0);
+
+
 float prior = 0.5;
+
+SpecCurve roc;
+GCurve si;
 
 void setup(){
   size(700,400,JAVA2D);
@@ -45,45 +54,46 @@ void setup(){
 
   siView.setView(30, 30, 300, 300);
   siView.setTitle("Stat. Info. (¹ = 0.5)");
+  siView.setCurveStart(1,0);
+  siView.setCurveEnd(0,0);
   
   rocView.setView(360, 30, 300, 300);
   rocView.setTitle("ROC");
 
-  SpecCurve siTent = new SpecCurve();
-  siTent.add(0.0, 0.0);
-  siTent.add(0.5, 0.25);
-  siTent.add(1.0, 0.0);
+  SpecCurve rocDiag = new SpecCurve();
+  rocDiag.add(0, 0);
+  rocDiag.add(1, 1);
 
-  SpecCurve si = new SpecCurve();
-  si.add(0.0, 0.0);
-  si.add(0.25, 0.125);
-  si.add(0.5, 0.15);
-  si.add(0.75, 0.125);
-  si.add(1.0, 0.0);
+  rocView.add(rocDiag, grey);
 
-  color grey = color(160,160,160);
-  color black = color(0,0,0);
-
+  GCurve siTent = new DualCurve(rocDiag, rocsiConvert);
   siView.add(siTent, grey);
-  siView.add(si, black);
 
-  rocView.add(sirocConvert.toCurve(siTent), grey);
-  rocView.add(sirocConvert.toCurve(si), black);  
+  roc = new SpecCurve();
+  roc.add(0.0, 0.0);
+  roc.add(0.1, 0.5);
+  roc.add(0.3, 0.8);
+  roc.add(0.7, 0.95);
+  roc.add(1.0, 1.0);
+
+  si = new DualCurve(roc, rocsiConvert);
+
+  siView.add(si, black);
+  rocView.add(roc, black);  
 
   // Controls for prior value
-//  ControlP5 priorControl = new ControlP5(this);
-//  Slider s = priorControl.addSlider("priorSlider", 0.0, 1.0, 0.5, 250, 350, 200, 20);
+  ControlP5 priorControl = new ControlP5(this);
+  Slider s = priorControl.addSlider("priorSlider", 0.0, 1.0, 0.5, 250, 350, 200, 20);
 
   smooth();
 }
 
-/*
 void priorSlider(float value) {
   prior = value;
+  siView.setTitle("Stat. Info. (¹ = " + nf(prior, 1, 2) +")" );
   sirocConvert.setPrior(prior);
   rocsiConvert.setPrior(prior);
 }
-*/
 
 void draw(){
   // Clear the screen

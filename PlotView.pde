@@ -29,6 +29,7 @@ class PlotView {
   int vxEnd, vyEnd;
   float xStart, xEnd;
   float yStart, yEnd;
+  float curvex0, curvex1, curvey0, curvey1;
   
   GBounds bounds;
   
@@ -38,6 +39,7 @@ class PlotView {
   ) {
     vxStart = vx0; vyStart = vy0; vxEnd = vx0 + vWidth; vyEnd = vy0 + vHeight;
     xStart = x0; yStart = y0; xEnd = x1; yEnd = y1;
+    curvex0 = xStart; curvey0 = yStart; curvex1 = xEnd; curvey1 = yEnd;
     bounds = new GBounds(xStart, yStart, xEnd, yEnd);
   }
 
@@ -48,6 +50,8 @@ class PlotView {
   void add(GPoint point, color col) { points.add(new PointView(point, col)); }
   void add(GLine line, color col) { lines.add(new LineView(line, col)); }
   
+  void setCurveStart(float x, float y) { this.curvex0 = x; this.curvey0 = y; }
+  void setCurveEnd(float x, float y) { this.curvex1 = x; this.curvey1 = y; }
   void setTitle(String title) { this.title = title; }
   void setViewStart(int vx, int vy) { vxStart = vx; vyStart = vy; }
   void setViewEnd(int vx, int vy) { vxEnd = vx; vyEnd = vy; }
@@ -73,9 +77,6 @@ class PlotView {
    }
     
    void preDraw() {
-     drawTitle();
-     drawBounds();
-     
      pushMatrix();
      
      // Set up viewing transformations
@@ -99,6 +100,10 @@ class PlotView {
    }
   
    void drawBounds() {
+     noFill();
+     stroke(200);
+     rect(vxStart,vyStart,viewWidth(),viewHeight());
+
      fill(0);
      textFont(tickFont);
 
@@ -116,18 +121,15 @@ class PlotView {
    }
   
    void draw(PGraphics g) {
-     preDraw();
+     drawTitle();
+     drawBounds();
      
-     // Outline
-     noFill();
-     stroke(200);
-     rect(xStart,yStart,xRange(),yRange());
-
+     preDraw();
      // Curves
      for(int i = 0 ; i < curves.size() ; i++) {
        CurveView v = (CurveView) curves.get(i);
        stroke(v.col);
-       viewCurve(v.curve).draw(g);
+       viewCurve(v.curve);
      }
      
      // Points
@@ -141,9 +143,8 @@ class PlotView {
      for(int i = 0 ; i < lines.size() ; i++) {
        LineView v = (LineView) lines.get(i);
        stroke(v.col);
-       viewLine(v.line).draw(g);
-     }
-     
+       viewLine(v.line);
+     }     
      postDraw();
    }
    
@@ -155,18 +156,19 @@ class PlotView {
    
    void drawLine(GLine l) {
      preDraw();
-     viewLine(l).draw(g);
+     viewLine(l);
      postDraw(); 
    }
    
-   RContour viewCurve(GCurve curve) {
+   void viewCurve(GCurve curve) {
      RContour c = new RContour();
+     c.addPoint(curvex0, curvey0);
      for(int i = 0 ; i < curve.size() ; i++) {
        GPoint p = curve.getPoint(i);
        c.addPoint(p.getX(), p.getY()); 
      }
-     
-     return c;
+     c.addPoint(curvex1, curvey1);     
+     c.draw(g);
    }
    
    void viewPoint(GPoint point) {
@@ -180,11 +182,11 @@ class PlotView {
      line(x + yRes, y - yRes, x - xRes, y + yRes);
    }
    
-   RContour viewLine(GLine line) {
+   void viewLine(GLine line) {
      GSegment s = bounds.clip(line);
      RContour l = new RContour();
-     l.addPoint(s.start.getX(), s.start.getY());
-     l.addPoint(s.end.getX(), s.end.getY());
-     return l;
+     l.addPoint(s.getStart().getX(), s.getStart().getY());
+     l.addPoint(s.getEnd().getX(), s.getEnd().getY());
+     l.draw(g);
    }
 }
