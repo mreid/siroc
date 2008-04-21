@@ -1,4 +1,4 @@
-import processing.core.*; import controlP5.*; import geomerative.*; import name.reid.mark.geovex.*; import java.util.Vector; import java.applet.*; import java.awt.*; import java.awt.image.*; import java.awt.event.*; import java.io.*; import java.net.*; import java.text.*; import java.util.*; import java.util.zip.*; import javax.sound.midi.*; import javax.sound.midi.spi.*; import javax.sound.sampled.*; import javax.sound.sampled.spi.*; import java.util.regex.*; import javax.xml.parsers.*; import javax.xml.transform.*; import javax.xml.transform.dom.*; import javax.xml.transform.sax.*; import javax.xml.transform.stream.*; import org.xml.sax.*; import org.xml.sax.ext.*; import org.xml.sax.helpers.*; public class siroc extends PApplet {
+import processing.core.*; import controlP5.*; import geomerative.*; import name.reid.mark.geovex.*; import java.util.Vector; import java.applet.*; import java.awt.*; import java.awt.image.*; import java.awt.event.*; import java.io.*; import java.net.*; import java.text.*; import java.util.*; import java.util.zip.*; public class siroc extends PApplet {
 
 
 
@@ -231,7 +231,7 @@ class PlotView {
   
    public void drawBounds() {
      noFill();
-     stroke(200);
+     stroke(grey);
      rect(vxStart,vyStart,viewWidth(),viewHeight());
 
      fill(0);
@@ -274,14 +274,14 @@ class PlotView {
        stroke(v.col);
        viewCurve(v.curve);
      }
-     
+
      // Points
      for(int i = 0 ; i < points.size() ; i++) {
        PointView v = (PointView) points.get(i);
        stroke(v.col);
        viewPoint(v.point);
      }
-     
+
      // Lines
      for(int i = 0 ; i < lines.size() ; i++) {
        LineView v = (LineView) lines.get(i);
@@ -308,7 +308,9 @@ class PlotView {
      c.addPoint(curvex0, curvey0);
      for(int i = 0 ; i < curve.size() ; i++) {
        GPoint p = curve.getPoint(i);
-       c.addPoint(p.getX(), p.getY()); 
+       if(! p.isPAI()) {
+         c.addPoint(p.getX(), p.getY()); 
+       }
      }
      c.addPoint(curvex1, curvey1);     
      c.draw(g);
