@@ -7,12 +7,12 @@ import name.reid.mark.geovex.*;
  * Visualisation of the relationship between Statistical Information
  * and ROC curves.
  * </p><p>
- * The left graph shows curves on a Statistical Information plot.
+ * The left graph shows curves on a cost-loss plot.
  * </p><p>
  * The right graph shows the same curves converted to an ROC representation
  * with prior probability for the positive class controlled by ¹.
  * </p><p>
- * Move your mouse over the S.I. window to see the corresponding line in the
+ * Move your mouse over the cost space window to see the corresponding line in the
  * ROC graph and <i>vice versa</i>. 
  * </p><p>
  * The prior ¹ can be modified using the slider underneath the graphs. 
@@ -41,7 +41,6 @@ PFont tickFont  = createFont("Arial", 12);
 color grey = color(160,160,160);
 color black = color(0,0,0);
 
-
 float prior = 0.5;
 
 SpecCurve roc;
@@ -53,12 +52,16 @@ void setup(){
   background(255);
 
   siView.setView(30, 30, 300, 300);
-  siView.setTitle("Stat. Info. (¹ = 0.5)");
+  siView.setTitle("Cost Space");
+  siView.xAxisTitle = "Cost";
+  siView.yAxisTitle = "Loss";
   siView.setCurveStart(1,0);
   siView.setCurveEnd(0,0);
   
   rocView.setView(360, 30, 300, 300);
-  rocView.setTitle("ROC");
+  rocView.setTitle("ROC Space");
+  rocView.xAxisTitle = "False Pos. Rate";
+  rocView.yAxisTitle = "True Pos. Rate";
 
   SpecCurve rocDiag = new SpecCurve();
   rocDiag.add(0, 0);
@@ -84,13 +87,12 @@ void setup(){
   // Controls for prior value
   ControlP5 priorControl = new ControlP5(this);
   Slider s = priorControl.addSlider("priorSlider", 0.0, 1.0, 0.5, 250, 350, 200, 20);
-
+  
   smooth();
 }
 
 void priorSlider(float value) {
   prior = value;
-  siView.setTitle("Stat. Info. (¹ = " + nf(prior, 1, 2) +")" );
   sirocConvert.setPrior(prior);
   rocsiConvert.setPrior(prior);
 }
@@ -101,6 +103,10 @@ void draw(){
   
   siView.draw(g);
   rocView.draw(g);
+
+  textAlign(CENTER, BOTTOM);
+  textFont(tickFont);
+  text("Prior Probability of Positive Class", 350, 345);
 
   if(siView.active()) {
     siCursor.setX(siView.viewToModelX(mouseX));

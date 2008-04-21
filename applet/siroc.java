@@ -7,12 +7,12 @@ import processing.core.*; import controlP5.*; import geomerative.*; import name.
  * Visualisation of the relationship between Statistical Information
  * and ROC curves.
  * </p><p>
- * The left graph shows curves on a Statistical Information plot.
+ * The left graph shows curves on a cost-loss plot.
  * </p><p>
  * The right graph shows the same curves converted to an ROC representation
  * with prior probability for the positive class controlled by \u03c0.
  * </p><p>
- * Move your mouse over the S.I. window to see the corresponding line in the
+ * Move your mouse over the cost space window to see the corresponding line in the
  * ROC graph and <i>vice versa</i>. 
  * </p><p>
  * The prior \u03c0 can be modified using the slider underneath the graphs. 
@@ -41,7 +41,6 @@ PFont tickFont  = createFont("Arial", 12);
 int grey = color(160,160,160);
 int black = color(0,0,0);
 
-
 float prior = 0.5f;
 
 SpecCurve roc;
@@ -53,12 +52,16 @@ public void setup(){
   background(255);
 
   siView.setView(30, 30, 300, 300);
-  siView.setTitle("Stat. Info. (\u03c0 = 0.5)");
+  siView.setTitle("Cost Space");
+  siView.xAxisTitle = "Cost";
+  siView.yAxisTitle = "Loss";
   siView.setCurveStart(1,0);
   siView.setCurveEnd(0,0);
   
   rocView.setView(360, 30, 300, 300);
-  rocView.setTitle("ROC");
+  rocView.setTitle("ROC Space");
+  rocView.xAxisTitle = "False Pos. Rate";
+  rocView.yAxisTitle = "True Pos. Rate";
 
   SpecCurve rocDiag = new SpecCurve();
   rocDiag.add(0, 0);
@@ -84,13 +87,12 @@ public void setup(){
   // Controls for prior value
   ControlP5 priorControl = new ControlP5(this);
   Slider s = priorControl.addSlider("priorSlider", 0.0f, 1.0f, 0.5f, 250, 350, 200, 20);
-
+  
   smooth();
 }
 
 public void priorSlider(float value) {
   prior = value;
-  siView.setTitle("Stat. Info. (\u03c0 = " + nf(prior, 1, 2) +")" );
   sirocConvert.setPrior(prior);
   rocsiConvert.setPrior(prior);
 }
@@ -101,6 +103,10 @@ public void draw(){
   
   siView.draw(g);
   rocView.draw(g);
+
+  textAlign(CENTER, BOTTOM);
+  textFont(tickFont);
+  text("Prior Probability of Positive Class", 350, 345);
 
   if(siView.active()) {
     siCursor.setX(siView.viewToModelX(mouseX));
@@ -148,6 +154,7 @@ class PlotView {
   Vector lines  = new Vector();
   
   String title = "[Plot Title]";
+  String xAxisTitle = "[X Axis]"; String yAxisTitle = "[Y Axis]";
   int vxStart, vyStart;
   int vxEnd, vyEnd;
   float xStart, xEnd;
@@ -230,17 +237,30 @@ class PlotView {
      fill(0);
      textFont(tickFont);
 
+     // x axis
      textAlign(LEFT, TOP);
      text(nf(xStart, 1, 1), vxStart, vyEnd + 1);
 
      textAlign(RIGHT, TOP);
      text(nf(xEnd, 1, 1), vxEnd, vyEnd + 1);
-     
+
+     textAlign(CENTER, TOP);
+     text(xAxisTitle, vxStart + viewWidth()/2, vyEnd + 3);
+
+     // y axis     
      textAlign(RIGHT, BOTTOM);
      text(nf(yStart, 1, 1), vxStart - 1, vyEnd);     
 
      textAlign(RIGHT, TOP);
      text(nf(yEnd, 1, 1), vxStart - 1, vyStart);     
+     
+     textAlign(CENTER, BOTTOM);
+     pushMatrix();
+     translate(vxStart - 3, vyStart + viewHeight()/2);
+     rotate(-PI/2.0f);
+     text(yAxisTitle, 0, 0);
+     popMatrix();
+     
    }
   
    public void draw(PGraphics g) {

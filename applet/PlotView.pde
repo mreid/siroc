@@ -25,6 +25,7 @@ class PlotView {
   Vector lines  = new Vector();
   
   String title = "[Plot Title]";
+  String xAxisTitle = "[X Axis]"; String yAxisTitle = "[Y Axis]";
   int vxStart, vyStart;
   int vxEnd, vyEnd;
   float xStart, xEnd;
@@ -107,17 +108,30 @@ class PlotView {
      fill(0);
      textFont(tickFont);
 
+     // x axis
      textAlign(LEFT, TOP);
      text(nf(xStart, 1, 1), vxStart, vyEnd + 1);
 
      textAlign(RIGHT, TOP);
      text(nf(xEnd, 1, 1), vxEnd, vyEnd + 1);
-     
+
+     textAlign(CENTER, TOP);
+     text(xAxisTitle, vxStart + viewWidth()/2, vyEnd + 3);
+
+     // y axis     
      textAlign(RIGHT, BOTTOM);
      text(nf(yStart, 1, 1), vxStart - 1, vyEnd);     
 
      textAlign(RIGHT, TOP);
      text(nf(yEnd, 1, 1), vxStart - 1, vyStart);     
+     
+     textAlign(CENTER, BOTTOM);
+     pushMatrix();
+     translate(vxStart - 3, vyStart + viewHeight()/2);
+     rotate(-PI/2.0);
+     text(yAxisTitle, 0, 0);
+     popMatrix();
+     
    }
   
    void draw(PGraphics g) {
